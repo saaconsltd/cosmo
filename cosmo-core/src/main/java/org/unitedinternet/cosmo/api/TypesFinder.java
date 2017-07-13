@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class TypesFinder {
     private static final Logger LOGGER = LoggerFactory.getLogger(TypesFinder.class);
     
-    private Reflections reflections;
+    private final Reflections reflections;
     
     public TypesFinder(){
         reflections = new Reflections(new FieldAnnotationsScanner(), 
@@ -38,6 +38,11 @@ public class TypesFinder {
                                         new TypeAnnotationsScanner(), 
                                         new SubTypesScanner());
     }
+    
+    public TypesFinder(Reflections reflections){
+        this.reflections = reflections;
+    }
+    
     public <T> Set<ExternalComponentDescriptor<? extends T>> findConcreteImplementationsByTypeAndMetadata(Class<T> type, 
                                                                                             Class<? extends Annotation> metadata){
         
@@ -65,12 +70,12 @@ public class TypesFinder {
         Set<SetterBasedServiceOwnerDescriptor> result = new HashSet<>();
         for(Method method : allMethods){
             if(method.getParameterTypes().length == 1 && method.getName().startsWith("set")){
-            	Class<?> setterDeclaringClass = method.getDeclaringClass();
-            	Set<Class<?>> setterDeclaringClasses = new HashSet<>(1);
-            	collectConcreteTypesFor(setterDeclaringClass, setterDeclaringClasses);
-            	for(Class<?> c : setterDeclaringClasses){
-            		result.add(new SetterBasedServiceOwnerDescriptor(c, method.getParameterTypes()[0], method));
-            	}
+                Class<?> setterDeclaringClass = method.getDeclaringClass();
+                Set<Class<?>> setterDeclaringClasses = new HashSet<>(1);
+                collectConcreteTypesFor(setterDeclaringClass, setterDeclaringClasses);
+                for(Class<?> c : setterDeclaringClasses){
+                    result.add(new SetterBasedServiceOwnerDescriptor(c, method.getParameterTypes()[0], method));
+                }
             }
         }
         
@@ -82,20 +87,20 @@ public class TypesFinder {
         Set<FieldBasedServiceOwnerDescriptor> result = new HashSet<>();
         
         for(Field field : fields){
-        	result.add(new FieldBasedServiceOwnerDescriptor(field.getDeclaringClass(), field.getType(), field));
+            result.add(new FieldBasedServiceOwnerDescriptor(field.getDeclaringClass(), field.getType(), field));
         }
         return result;
     }
     
     private <T> void  collectConcreteTypesFor(Class<T> clazz, Set<Class<?>> set){
-    	if(!Modifier.isAbstract(clazz.getModifiers())){
-    		set.add(clazz);
-    		return;
-    	}
-    	
-    	Set<Class<? extends T >> subTypes = reflections.getSubTypesOf(clazz);
-    	for(Class<? extends T> c : subTypes){
-    		collectConcreteTypesFor(c, set);
-    	}
+        if(!Modifier.isAbstract(clazz.getModifiers())){
+            set.add(clazz);
+            return;
+        }
+        
+        Set<Class<? extends T >> subTypes = reflections.getSubTypesOf(clazz);
+        for(Class<? extends T> c : subTypes){
+            collectConcreteTypesFor(c, set);
+        }
     }
 }

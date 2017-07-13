@@ -15,6 +15,8 @@ import javax.sql.DataSource;
 
 import org.hibernate.Interceptor;
 import org.hibernate.SessionFactory;
+import org.hibernate.boot.model.naming.ImplicitNamingStrategy;
+import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
 import org.hibernate.cfg.Configuration;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -127,24 +129,24 @@ public class HibernateSessionFactoryBeanDelegate implements FactoryBean<SessionF
 
     public void afterPropertiesSet() throws IOException {
         if(instanceProvider != null){
-    		Collection<? extends DataSourceProvider> dsps = instanceProvider.getImplInstancesAnnotatedWith(CalendarRepository.class, DataSourceProvider.class);
-    		if(dsps != null && !dsps.isEmpty()){
-    			DataSourceProvider dsp = dsps.iterator().next();
-    			if(dsp.getDataSourceType() != null){
-    				delegate.getHibernateProperties().put("hibernate.dialect", getDialectForDataSourceType(dsp.getDataSourceType()));
-    			}
-    		}
+            Collection<? extends DataSourceProvider> dsps = instanceProvider.getImplInstancesAnnotatedWith(CalendarRepository.class, DataSourceProvider.class);
+            if(dsps != null && !dsps.isEmpty()){
+                DataSourceProvider dsp = dsps.iterator().next();
+                if(dsp.getDataSourceType() != null){
+                    delegate.getHibernateProperties().put("hibernate.dialect", getDialectForDataSourceType(dsp.getDataSourceType()));
+                }
+            }
         }
         
         delegate.afterPropertiesSet();
     }
     
     private static String getDialectForDataSourceType(DataSourceType dataSourceType){
-    	if(dataSourceType == DataSourceType.MySQL5InnoDB){
-    		return COSMO_MYSQL_DIALECT;
-    	}
-    	
-    	return "org.hibernate.dialect." + dataSourceType.name() + "Dialect";
+        if(dataSourceType == DataSourceType.MySQL5InnoDB){
+            return COSMO_MYSQL_DIALECT;
+        }
+        
+        return "org.hibernate.dialect." + dataSourceType.name() + "Dialect";
     }
     public final Configuration getConfiguration() {
         return delegate.getConfiguration();
@@ -165,4 +167,14 @@ public class HibernateSessionFactoryBeanDelegate implements FactoryBean<SessionF
     public void destroy() {
         delegate.destroy();
     }
+    
+    public void setImplicitNamingStrategy(ImplicitNamingStrategy implicitNamingStrategy) {
+        delegate.setImplicitNamingStrategy(implicitNamingStrategy);
+    }
+
+    public void setPhysicalNamingStrategy(PhysicalNamingStrategy physicalNamingStrategy) {
+        delegate.setPhysicalNamingStrategy(physicalNamingStrategy);
+    }
+
+    
 }

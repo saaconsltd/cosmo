@@ -44,13 +44,14 @@ public class ExternalComponentInstanceProvider {
         for(ExternalComponentDescriptor<? extends T> description : descriptions){
             
             T instance = externalComponentFactory.instanceForDescriptor(description);
-            
-            result.add(instance);
+            if (instance != null) {
+                result.add(instance);
+            }
         }
         return result;
     }
     
     public <T> T instanceForClass(Class<T> clazz){
-    	return externalComponentFactory.instanceForDescriptor(new ExternalComponentDescriptor<T>(clazz));
+        return externalComponentFactory.instanceForDescriptor(new ExternalComponentDescriptor<T>(clazz));
     }
 }
